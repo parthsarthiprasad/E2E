@@ -21,27 +21,27 @@ self.camlink = '' #Add your RTSP cam link
 
 ##### 1. Python 3 Installation
 ```
-sudo apt-get install python3
+brew install python
 ```
-
 ##### 2. GStreamer Installation
 You will need GStreamer. Installation instruction can be found on this link [GStreamer](https://gstreamer.freedesktop.org/download/)
 Still for your quick reference will list installation instruction for Ubuntu:
 
 ```
-apt-get install libgstreamer1.0-0 gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-doc gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-qt5 gstreamer1.0-pulseaudio
+brew install gstreamer gst-plugins-good gst-plugins-bad gst-rtsp-server
 ```
 
 ##### 3. OpenCV Installation
 There are various way to install OpenCV but example using (Conda, PIP or build from source). But for purpose of this project below is instruction using PIP
 
 ```
-pip3 install opencv-contrib-python
+python3 -m pip install opencv-python –user --upgrade
 ```
 
 ##### 4. Numpy Installation
 ```
-pip3 install numpy
+python3 -m pip install numpy  –user --upgrade
+
 ```
 
 ##### Testing the installations
@@ -64,7 +64,9 @@ python3 ip_simulation.py
 ####After the startup open a new tab in terminal and open ffmpeg
 ```
 ffplay rtsp://127.0.0.1:3005/test
+```
 
 ### Star the REPO, if you find it useful. Feel free for pull requests.
 ## CHEERS!!! 
+
 
