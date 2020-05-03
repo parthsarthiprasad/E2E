@@ -57,4 +57,4 @@ Go to `macos/emotion_analytics` directory and run
 
 This will start the IP camera simulation with a real-time emotion analytics. You can check this simulation with `ffplay`:
 
-`ffplay rtsp://127.0.0.1:3002/test`
+`ffplay rtsp://127.0.0.1:3005/test`
