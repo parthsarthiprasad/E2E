@@ -62,9 +62,15 @@ python2 ip_simulation.py
 ```
 
 ####After the startup open a new tab in terminal and open ffmpeg
-```
+
 ffplay rtsp://127.0.0.1:3005/test
 
 ### Star the REPO, if you find it useful. Feel free for pull requests.
 ## CHEERS!!! 
+
+#### trouble shooting the process
+```bash
+ps a
+kill -9 pid
+```
 
