@@ -142,12 +142,12 @@ class SensorFactory(GstRtspServer.RTSPMediaFactory):
                              '! rtph264pay config-interval=1 name=pay0 pt=96'.format(self.fps)
         impath = os.path.join(os.path.dirname(os.path.abspath(__file__)),'christmas.png')
         self.christmas_image = cv2.imread(impath, cv2.IMREAD_COLOR)
-        self.christmas_image = cv2.resize(self.christmas_image, None, fx=0.1, fy=0.1)
+        self.christmas_image = cv2.resize(self.christmas_image, None, fx=0.05, fy=0.05)
 
     def on_need_data(self, src, lenght):
         if self.cap.isOpened():  # Check webcam is opened
             ret, frame = self.cap.read()  # Read next frame
-            #frame = self.draw_on_frame(frame)  # Draw something on frame frame
+            frame = self.draw_on_frame(frame)  # Draw something on frame frame
             if ret:  # If read success
                 data = frame.tostring()  # Reformat frame to string
                 buf = Gst.Buffer.new_allocate(None, len(data), None)  # Allocate memory
@@ -168,6 +168,7 @@ class SensorFactory(GstRtspServer.RTSPMediaFactory):
                 cur_idxs = (idxs[0] + i * self.christmas_image.shape[0],
                             idxs[1] + j * (frame.shape[1] - self.christmas_image.shape[1]),
                             idxs[2])
+                #print(cur_idxs)
                 frame[cur_idxs] = self.christmas_image[idxs]
         return frame
 
