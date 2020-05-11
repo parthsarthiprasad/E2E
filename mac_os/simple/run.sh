@@ -19,6 +19,8 @@ script_location=$(dirname $0)
 export GI_TYPELIB_PATH="${script_location}/../../build/girepository-1.0"
 #echo $GI_TYPELIB_PATH 
  
+python3 ${script_location}/ip_simulation.py & (sleep 2 && ffmpeg -i rtsp://127.0.0.1:3005/test -pix_fmt yuv420p -f avfoundation "\"1"\")
 
-python3 ${script_location}/ip_simulation.py 
+kill $(ps aux | grep '[p]ython3 ./ip_simulation.py' | awk '{print $2}')
+
 # This is written together to run all tasks together
