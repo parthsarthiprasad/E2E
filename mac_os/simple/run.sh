@@ -9,8 +9,16 @@
 
 # ffplay rtsp://127.0.0.1:3005/test  
 
+current_location=$(pwd)
+script_location=$(dirname $0)
+# if [ $script_location = '.' ]
+# then
+#  script_location="$current_location"
+# fi
+#echo $script_location
+export GI_TYPELIB_PATH="${script_location}/../../build/girepository-1.0"
+#echo $GI_TYPELIB_PATH 
+ 
 
-trap 'kill %1; kill %2' SIGINT
-/usr/bin/python ./ip_simulation.py | wait | ffplay rtsp://127.0.0.1:3005/test  | sleep 3
-
+python3 ${script_location}/ip_simulation.py 
 # This is written together to run all tasks together

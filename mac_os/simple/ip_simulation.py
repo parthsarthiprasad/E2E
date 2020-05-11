@@ -5,9 +5,10 @@ Created by Andrey Belyaev
 import cv2
 import gi
 import numpy as np
+import os
 
 gi.require_version('Gst', '1.0')
-#gi.require_version('GstRtspServer', '1.0')
+gi.require_version('GstRtspServer', '1.0')
 from gi.repository import Gst, GstRtspServer, GLib, GObject
 
 # Factory class
@@ -23,25 +24,21 @@ class SensorFactory(GstRtspServer.RTSPMediaFactory):
     def __init__(self, **properties):
         super(SensorFactory, self).__init__(**properties)  # Init super class
         self.cap = cv2.VideoCapture(0)  # Initialize webcam. You may have to change 0 to your webcam number
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
         self.frame_number = 0  # Current frame number
-        self.fps = 15  # output streaming fps
+        self.fps = 30  # output streaming fps
         self.duration = 1 / self.fps * Gst.SECOND  # duration of a frame in nanoseconds
-        # self.launch_string = 'appsrc name=source is-live=true block=true format=GST_FORMAT_TIME ' \
-        #                      'caps=video/x-raw,format=BGR,width=1280,height=720,framerate={}/1 ' \
-        #                      '! gdkpixbufoverlay location=logo.png  '\
-        #                      '! videoconvert ! video/x-raw,format=I420 ' \
-        #                      '! x264enc speed-preset=ultrafast tune=zerolatency ' \
-        #                      '! rtph264pay config-interval=1 name=pay0 pt=96'.format(self.fps)
         self.launch_string = 'appsrc name=source is-live=true block=true format=GST_FORMAT_TIME ' \
                              'caps=video/x-raw,format=BGR,width=1280,height=720,framerate={}/1 ' \
                              '! textoverlay text="E2E VIZION" valignment=top halignment=left font-desc="Sans, 20" ' \
                              '! videoconvert ! video/x-raw,format=I420 ' \
                              '! x264enc speed-preset=ultrafast tune=zerolatency ' \
                              '! rtph264pay config-interval=1 name=pay0 pt=96'.format(self.fps)
-
-
-        self.christmas_image = cv2.imread('christmas.png', cv2.IMREAD_COLOR)
-        self.christmas_image = cv2.resize(self.christmas_image, None, fx=0.5, fy=0.5)
+        # x264enc pass=5 quantizer=22 speed-preset=4 profile=1 ! 
+        impath = os.path.join(os.path.dirname(os.path.abspath(__file__)),'christmas.png')
+        self.christmas_image = cv2.imread(impath, cv2.IMREAD_COLOR)
+        self.christmas_image = cv2.resize(self.christmas_image, None, fx=0.05, fy=0.05)
 
     def on_need_data(self, src, lenght):
         if self.cap.isOpened():  # Check webcam is opened
@@ -62,12 +59,12 @@ class SensorFactory(GstRtspServer.RTSPMediaFactory):
 
     def draw_on_frame(self, frame):
         idxs = np.where(np.logical_and(self.christmas_image > 0, self.christmas_image < 255))
-        # for i in range(3):
-        #     for j in range(2):
-        #         cur_idxs = (idxs[0] + i * self.christmas_image.shape[0],
-        #                     idxs[1] + j * (frame.shape[1] - self.christmas_image.shape[1]),
-        #                     idxs[2])
-        #         frame[cur_idxs] = self.christmas_image[idxs]
+        for i in range(3):
+            for j in range(2):
+                cur_idxs = (idxs[0] + i * self.christmas_image.shape[0],
+                            idxs[1] + j * (frame.shape[1] - self.christmas_image.shape[1]),
+                            idxs[2])
+                frame[cur_idxs] = self.christmas_image[idxs]
         
         return frame
 
@@ -93,7 +90,7 @@ class GstServer(GstRtspServer.RTSPServer):
 if __name__ == '__main__':
     loop = GLib.MainLoop()  # Create infinite loop for gstreamer server
     #threads_init is no longer needed 
-    #GLib.threads_init()  # Initialize server threads for asynchronous requests
+    #GObject.threads_init()  # Initialize server threads for asynchronous requests
     Gst.init(None)  # Initialize GStreamer
 
     server = GstServer()  # Initialize server

@@ -15,9 +15,9 @@ script_location=$(dirname $0)
 # then
 #  script_location="$current_location"
 # fi
- echo $script_location
- export GI_TYPELIB_PATH="${script_location}/../build/girepository-1.0"
- echo $GI_TYPELIB_PATH 
+#echo $script_location
+export GI_TYPELIB_PATH="${script_location}/../../build/girepository-1.0"
+#echo $GI_TYPELIB_PATH 
  
 
 python3 ${script_location}/ip_simulation.py 
