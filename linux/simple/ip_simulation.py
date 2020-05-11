@@ -35,6 +35,7 @@ class SensorFactory(GstRtspServer.RTSPMediaFactory):
                              '! videoconvert ! video/x-raw,format=I420 ' \
                              '! x264enc speed-preset=ultrafast tune=zerolatency ' \
                              '! rtph264pay config-interval=1 name=pay0 pt=96'.format(self.fps)
+        #'! v4l2sink device=/dev/video1' \
         # x264enc pass=5 quantizer=22 speed-preset=4 profile=1 ! 
         impath = os.path.join(os.path.dirname(os.path.abspath(__file__)),'christmas.png')
         self.christmas_image = cv2.imread(impath, cv2.IMREAD_COLOR)
