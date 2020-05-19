@@ -8,9 +8,10 @@ import numpy as np
 import tensorflow as tf
 from win32api import GetSystemMetrics
 import win32gui
-
-from threading import Thread
+import sys
+from threading import Thread, Lock
 import multiprocessing as mp
+from config import get_config
 import pickle
 import math
 
@@ -50,15 +51,12 @@ size_video = [640,480]
 # fps = 0
 P_IDP = 5
 depth = -50
+name_dir = sys.argv[1]
 # for monitoring
 
 # environment parameter
 Rs = (GetSystemMetrics(0),GetSystemMetrics(1))
-
-
-model_dir
-print(Rs)
-
+output_dir = "outputs/"
 
 # video receiver
 class video_receiver:
@@ -67,7 +65,7 @@ class video_receiver:
         self.video_recv = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         print('Socket created')
         #         global remote_head_Center
-        self.video_recv.bind(('',conf.receiver_port))
+        self.video_recv.bind(('',conf.recver_port))
         self.video_recv.listen(10)
         print('Socket now listening')
         self.conn, self.addr=self.video_recv.accept()
@@ -78,11 +76,7 @@ class video_receiver:
         self.x_ratio = size_video[0]/self.face_detect_size[0]
         self.y_ratio = size_video[1]/self.face_detect_size[1]      
         self.start_recv(shared_v,lock)
-        ## start video sender
-        self.client_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.client_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.client_sock.connect((conf.client_ip, conf.sender_port_client))
-        self.encode_param=[int(cv2.IMWRITE_JPEG_QUALITY),90]
+        self.counter = 0
 
     def face_detection(self,frame,shared_v,lock):
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -129,9 +123,10 @@ class video_receiver:
         
             cv2.imshow('Remote',frame)
             cv2.waitKey(1)
-            result, imgencode = cv2.imencode('.jpg', recv_frame, self.encode_param)
-            data = pickle.dumps(imgencode, 0)
-            self.client_sock.sendall(struct.pack("L", len(data)) + data)
+            cv2.imwrite(output_dir+name_dir+str(self.counter)+".jpg",frame)
+            self.counter+=1
+
+# # Flx-gaze 
 
 class gaze_redirection_system:
     def __init__(self,shared_v,lock):
@@ -153,12 +148,7 @@ class gaze_redirection_system:
         self.client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.client_socket.connect((conf.tar_ip, conf.sender_port))
         self.encode_param=[int(cv2.IMWRITE_JPEG_QUALITY),90]
-        ## start video receiver
-        self.video_rec = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-        # global remote_head_Center
-        self.video_rec.bind(('',conf.receiver_port_2))
-        self.video_rec.listen(10)
-        self.connect, self.addr=self.video_rec.accept()
+        self.count = 20
         
         # load model to gpu
         print("Loading model of [L] eye to GPU")
@@ -327,7 +317,10 @@ class gaze_redirection_system:
             # shifting angles estimator
             alpha_w2c, p_e, R_w = self.shifting_angles_estimator(LE_center,RE_center,shared_v,lock)
             
+            time_get_eye = time.time() - time_start
             # gaze manipulation
+            time_start = time.time()
+            
             # gaze redirection
             # left Eye
             LE_infer_img = self.L_sess.run(self.LE_img_pred, feed_dict= {
@@ -371,35 +364,19 @@ class gaze_redirection_system:
     
     def run(self,shared_v,lock):
         # def main():
-        redir = True
+        redir = False
         size_window = [659,528]
-        vs = cv2.VideoCapture(0)
-        vs.set(3, size_video[0])
-        vs.set(4, size_video[1])
         t = time.time()
-        cv2.namedWindow(conf.uid)
-        cv2.moveWindow(conf.uid, int(Rs[0]/2)-int(size_window[0]/2),int(Rs[1]/2)-int(size_window[1]/2));
-        while 1:
-            ret = True
-            data = b""
-            payload_size = struct.calcsize("L")
-            print("payload_size: {}".format(payload_size))
-            while True:
-                while len(data) < payload_size:
-                    data += self.connect.recv(4096)
-    
-                packed_msg_size = data[:payload_size]
-                data = data[payload_size:]
-                msg_size = struct.unpack("L", packed_msg_size)[0]
-                while len(data) < msg_size:
-                    data += self.connect.recv(4096)
-    
-                frame_data = data[:msg_size]
-                data = data[msg_size:]
-                frame = pickle.loads(frame_data, fix_imports=True, encoding="bytes")
-                if(type(frame)==str):
-                    ret=False
-            recv_frame = cv2.imdecode(frame, cv2.IMREAD_COLOR)
+        while count:
+            self.count-=1
+            if not(self.count):
+                break
+            items = os.listdir(named_dir)
+            if(len(items)<2):
+                continue
+            self.count=20
+            recv_frame = cv2.imread(named_dir+"/"+items[-1])
+            os.remove(named_dir+"/"+items[0])
             if ret:
                 cv2.imshow(conf.uid,recv_frame)
                 if recv_frame is not None:
@@ -434,11 +411,12 @@ class gaze_redirection_system:
                     else:
                         pass
 
+
 if __name__ == '__main__':
     l = mp.Lock()  # multi-process lock
     v = mp.Array('i', [320,240])  # shared parameter
     # start video receiver
-    # vs_thread = Thread(target=video_receiver, args=(conf.receiver_port,))
+    # vs_thread = Thread(target=video_receiver, args=(conf.recver_port,))
     vs_thread = mp.Process(target=video_receiver, args=(v,l))
     vs_thread.start()
     time.sleep(1)
