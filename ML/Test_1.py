@@ -197,22 +197,6 @@ class gaze_redirection_system:
                
         self.run(shared_v,lock)
         
-    def monitor_para(self,frame,fig_alpha,fig_eye_pos,fig_R_w):
-        cv2.rectangle(frame,
-                  (size_video[0]-150,0),(size_video[0],55),
-                  (255,255,255),-1
-                 )
-        cv2.putText(frame,
-                    'Eye:['+str(int(fig_eye_pos[0])) +','+str(int(fig_eye_pos[1]))+','+str(int(fig_eye_pos[2]))+']',
-                    (size_video[0]-140,15), cv2.FONT_HERSHEY_SIMPLEX, 0.4,(0,0,255),1,cv2.LINE_AA)
-        cv2.putText(frame,
-                    'alpha:[V='+str(int(fig_alpha[0])) + ',H='+ str(int(fig_alpha[1]))+']',
-                    (size_video[0]-140,30),cv2.FONT_HERSHEY_SIMPLEX,0.4,(0,0,255),1,cv2.LINE_AA)
-        cv2.putText(frame,
-                    'R_w:['+str(int(fig_R_w[0])) + ','+ str(int(fig_R_w[1]))+']',
-                    (size_video[0]-140,45),cv2.FONT_HERSHEY_SIMPLEX,0.4,(0,0,255),1,cv2.LINE_AA)
-        return frame
-        
     def get_inputs(self, frame, shape, pos = "L", size_I = [48,64]):
         if(pos == "R"):
             lc = 36
@@ -344,8 +328,6 @@ class gaze_redirection_system:
                   (R_le_LT[1]+pixel_cut[1]):(R_le_LT[1]+size_le_ori[1]-pixel_cut[1])] = LE_infer[pixel_cut[0]:(-1*pixel_cut[0]), pixel_cut[1]:-1*(pixel_cut[1])]*255
             frame[(R_re_LT[0]+pixel_cut[0]):(R_re_LT[0]+size_re_ori[0]-pixel_cut[0]),
                   (R_re_LT[1]+pixel_cut[1]):(R_re_LT[1]+size_re_ori[1]-pixel_cut[1])] = RE_infer[pixel_cut[0]:(-1*pixel_cut[0]), pixel_cut[1]:-1*(pixel_cut[1])]*255
-
-        frame = self.monitor_para(frame, alpha_w2c, self.Pe, R_w)
 
         result, imgencode = cv2.imencode('.jpg', frame, self.encode_param)
         data = pickle.dumps(imgencode, 0)
