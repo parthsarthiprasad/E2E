@@ -14,6 +14,7 @@ import multiprocessing as mp
 from config import get_config
 import pickle
 import math
+import os
 
 class Config:
     def __init__(self):
@@ -349,16 +350,16 @@ class gaze_redirection_system:
         redir = False
         size_window = [659,528]
         t = time.time()
-        while count:
+        while self.count:
             self.count-=1
             if not(self.count):
                 break
-            items = os.listdir(named_dir)
+            items = os.listdir(name_dir)
             if(len(items)<2):
                 continue
             self.count=20
-            recv_frame = cv2.imread(named_dir+"/"+items[-1])
-            os.remove(named_dir+"/"+items[0])
+            recv_frame = cv2.imread(name_dir+"/"+items[-1])
+            os.remove(name_dir+"/"+items[0])
             if ret:
                 cv2.imshow(conf.uid,recv_frame)
                 if recv_frame is not None:
@@ -386,7 +387,6 @@ class gaze_redirection_system:
                         cv2.destroyWindow(conf.uid)
                         self.client_socket.shutdown(socket.SHUT_RDWR)
                         self.client_socket.close()
-                        vs.release()
                         self.L_sess.close()
                         self.R_sess.close()
                         break

@@ -12,6 +12,8 @@ parser = reqparse.RequestParser()
 parser.add_argument("image",type=str)
 parser.add_argument("count",type=int)
 
+output_dir = "outputs/"
+
 class Main_Page(Resource):
     def __init__(self):
         pass
@@ -21,9 +23,10 @@ class Main_Page(Resource):
     
     def post(self):
         json_data = request.get_json(force = True)
-        username = json_data("user_name")
+        username = json_data["user_name"]
         os.mkdir(username)
-        p = subprocess.Popen(["python","Test_2.py",username],stdin=subprocess.PIPE,stdout=subprocess.PIPE)
+        os.mkdir(output_dir+username)
+        p = subprocess.run(["python","Test_2.py",username])
         return {"Happy":"Noises"}
 
 class User_Page(Resource):
@@ -31,8 +34,11 @@ class User_Page(Resource):
         pass
     
     def get(self,name):
-        img_name = os.listdir(name)[-1]
-        img = cv2.imread(name+"/"+img_name)
+        items = os.listdir(output_dir+name)
+        if(len(items)>1):
+            os.remove(output_dir+name+"/"+items[0])
+        img_name = items[-1]
+        img = cv2.imread(output_dir+name+"/"+img_name)
         _, img_encoded = cv2.imencode('.jpg', img)
         return jsonify(image = img_encoded.tostring())
         
