@@ -16,6 +16,7 @@ script_location=$(dirname $0)
 #  script_location="$current_location"
 # fi
 #echo $script_location
+sudo apt-get install libgstrtspserver-1.0-0
 export GI_TYPELIB_PATH="${script_location}/../../build/girepository-1.0"
 #echo $GI_TYPELIB_PATH 
  
