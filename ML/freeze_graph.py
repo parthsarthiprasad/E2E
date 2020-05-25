@@ -50,8 +50,9 @@ from tensorflow.python.platform import gfile
 from tensorflow.python.saved_model import loader
 from tensorflow.python.saved_model import tag_constants
 from tensorflow.python.tools import saved_model_utils
-from tensorflow.python.training import py_checkpoint_reader
+from tensorflow.python import pywrap_tensorflow
 from tensorflow.python.training import saver as saver_lib
+from tensorflow.python.training import checkpoint_management
 
 
 def _has_no_variables(sess):
@@ -116,12 +117,12 @@ def freeze_graph_with_def_protos(input_graph_def,
   # 'input_checkpoint' may be a prefix if we're using Saver V2 format
   if (not input_saved_model_dir and
       not tf.train.checkpoint_exists(input_checkpoint)):
-    raise ValueError("Input checkpoint '" + input_checkpoint +
-                     "' doesn't exist!")
+    print("Input checkpoint '" + input_checkpoint +"' doesn't exist!")
+    return -1
 
   if not output_node_names:
-    raise ValueError(
-        "You need to supply the name of a node to --output_node_names.")
+    print("You need to supply the name of a node to --output_node_names.")
+    return -1
 
   # Remove all the explicit device specifications for this node. This helps to
   # make the graph more portable.
@@ -152,7 +153,7 @@ def freeze_graph_with_def_protos(input_graph_def,
       loader.load(sess, saved_model_tags, input_saved_model_dir)
     else:
       var_list = {}
-      reader = py_checkpoint_reader.NewCheckpointReader(input_checkpoint)
+      reader = pywrap_tensorflow.NewCheckpointReader(input_checkpoint)
       var_to_shape_map = reader.get_variable_to_shape_map()
 
       # List of all partition variables. Because the condition is heuristic
@@ -209,14 +210,14 @@ def freeze_graph_with_def_protos(input_graph_def,
         if variable_names_blacklist else None)
 
     if input_meta_graph_def:
-      output_graph_def = graph_util.convert_variables_to_constants(
+      output_graph_def = tf.graph_util.convert_variables_to_constants(
           sess,
           input_meta_graph_def.graph_def,
           output_node_names.replace(" ", "").split(","),
           variable_names_whitelist=variable_names_whitelist,
           variable_names_blacklist=variable_names_blacklist)
     else:
-      output_graph_def = graph_util.convert_variables_to_constants(
+      output_graph_def = tf.graph_util.convert_variables_to_constants(
           sess,
           input_graph_def,
           output_node_names.replace(" ", "").split(","),
